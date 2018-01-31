@@ -7,14 +7,10 @@
 
 package org.usfirst.frc.team3597.robot;
 
-//import edu.wpi.first.wpilibj.CameraServer;
-//import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
-//import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
-//import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class Robot extends IterativeRobot {
 	
@@ -28,7 +24,7 @@ public class Robot extends IterativeRobot {
 	public static boolean buttonValueB;
 	
 	//Time
-	double autoDriveTime;
+	long autoDriveTime = (3 * 1000) + System.currentTimeMillis();
 	
 	public void robotInit() {
 		System.out.println("Robot Initializing!");
@@ -41,7 +37,13 @@ public class Robot extends IterativeRobot {
 	}
 
 	public void autonomousPeriodic() {
-		drive(1 * speed, 1 * speed, 3f);
+		long timeElapsed = System.currentTimeMillis();
+		
+		if (timeElapsed <= autoDriveTime) {
+			Robot.tankDrive(1 * speed, 1 * speed);
+		} else {
+			Robot.tankDrive(0, 0);
+		}
 	}
 
 	public void teleopPeriodic() {
@@ -49,6 +51,7 @@ public class Robot extends IterativeRobot {
 		buttonValueA = Controller.getRawButton(IO.BUTTON_A);
 		buttonValueB = Controller.getRawButton(IO.BUTTON_B);
 		
+		//Increase speed on button A & decrease on button B
 		if (buttonValueA) {
 			try {
 				Thread.sleep(1000);
@@ -74,17 +77,6 @@ public class Robot extends IterativeRobot {
 		double rightMotorSpeed = (double) (Controller.getRawAxis(IO.RIGHT_JOYSTICK_Y_AXIS) * speed);
 		
 		Robot.tankDrive(leftMotorSpeed, rightMotorSpeed);
-	}
-	
-	public void drive (float leftMotorSpeed, float rightMotorSpeed, float time) {
-		time = (time * 1000) + System.currentTimeMillis();
-		double timeElapsed = System.currentTimeMillis();
-		
-		while (timeElapsed <= time) {
-			Robot.tankDrive(1 * speed, 1 * speed);
-		}
-	
-		Robot.tankDrive(0, 0);
 	}
 	
 }
