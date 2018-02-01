@@ -13,6 +13,7 @@ import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.CameraServer;
 
 public class Robot extends IterativeRobot {
 	
@@ -31,6 +32,7 @@ public class Robot extends IterativeRobot {
 	
 	public void robotInit() {
 		System.out.println("Robot Initializing!");
+        CameraServer.getInstance().startAutomaticCapture();
 		Robot = new DifferentialDrive(new Spark(IO.LEFT_MOTOR), new Spark(IO.RIGHT_MOTOR));
 		Controller = new Joystick(IO.CONTROLLER);
 		SmartDashboard.setDefaultNumber("Wait Timer", 0);
@@ -48,7 +50,7 @@ public class Robot extends IterativeRobot {
 		
 		if (timeElapsed >= autoWaitTime) {
 			if (timeElapsed <= autoWaitTime + autoDriveTime) {
-				Robot.tankDrive(.2, .2); // Left and Right speeds, 20% power
+				Robot.tankDrive(.75, .75); // Left and Right speeds, 20% power
 			}
 		}
 	}
