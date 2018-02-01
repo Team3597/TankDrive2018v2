@@ -11,6 +11,8 @@ import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Spark;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.DriverStation;
 
 public class Robot extends IterativeRobot {
 	
@@ -24,25 +26,30 @@ public class Robot extends IterativeRobot {
 	public static boolean buttonValueB;
 	
 	//Time
-	long autoDriveTime = (3 * 1000) + System.currentTimeMillis();
+	double autoWaitTime;
+	double autoDriveTime;
 	
 	public void robotInit() {
 		System.out.println("Robot Initializing!");
 		Robot = new DifferentialDrive(new Spark(IO.LEFT_MOTOR), new Spark(IO.RIGHT_MOTOR));
 		Controller = new Joystick(IO.CONTROLLER);
+		SmartDashboard.setDefaultNumber("Wait Timer", 0);
+		
 	}
 
 	public void autonomousInit() {
 		System.out.println("Autonomous Robot Initializing!");
+		autoWaitTime = SmartDashboard.getNumber("Wait Timer", 0); // Gets how long to wait before moving forwards, drivers must type this in when setting up the match
+		autoDriveTime = 3;  // TODO: See if this drives where you need it to be
 	}
 
 	public void autonomousPeriodic() {
-		long timeElapsed = System.currentTimeMillis();
+		double timeElapsed = 15 - DriverStation.getInstance().getMatchTime(); // The DriverStation gives an approximate time until the end of the period
 		
-		if (timeElapsed <= autoDriveTime) {
-			Robot.tankDrive(1 * speed, 1 * speed);
-		} else {
-			Robot.tankDrive(0, 0);
+		if (timeElapsed >= autoWaitTime) {
+			if (timeElapsed <= autoWaitTime + autoDriveTime) {
+				Robot.tankDrive(.2, .2); // Left and Right speeds, 20% power
+			}
 		}
 	}
 
