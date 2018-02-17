@@ -7,7 +7,7 @@ public class CubeShooter {
 	
 	private static Victor leftShooterMotor;
 	private static Victor rightShooterMotor;
-	private static double speed;
+	public static double speed;
 	
 	//Creates a CubeShooter object
 	public CubeShooter (int leftShooterMotor, int rightShooterMotor, double speed) {

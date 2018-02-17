@@ -8,10 +8,10 @@ public class CubeIntake {
 	private static Spark leftIntakeMotor;
 	private static Spark rightIntakeMotor;
 	private static Spark armMotor;
-	private static CubeShooter shooter;
+	public static CubeShooter shooter;
 	private static final float SPEED = 1f;
 	
-	//Creates a CubeShooter object
+	//Creates a CubeIntake object
 	public CubeIntake (int leftIntakeMotor, int rightIntakeMotor, int armMotor,
 			int leftShooterMotor, int rightShooterMotor) {
 		CubeIntake.leftIntakeMotor = new Spark(leftIntakeMotor);

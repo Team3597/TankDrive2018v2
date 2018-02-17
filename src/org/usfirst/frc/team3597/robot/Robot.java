@@ -2,22 +2,33 @@ package org.usfirst.frc.team3597.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.command.Command;
+import edu.wpi.first.wpilibj.command.Scheduler;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.CameraServer;
 import edu.wpi.first.wpilibj.DriverStation;
 
 public class Robot extends IterativeRobot {
 	
 	//Autonomous
-	SendableChooser autoChooser;
+	private int robotPosition;
+	private String gameData;
+	// Keeps track of time state was entered
+    private Timer autonStateTimer;
+    // Keeps track of current state
+    private int autonState;
+    // List of possible states    
+    private final static int AUTON_STATE_DRIVE_FORWARD = 1;
+    private final static int AUTON_STATE_STOP = 2;
+    private final static int AUTON_STATE_SHOOT = 3;
+    private final static int AUTON_STATE_FINISHED = 4;
+    private final static int AUTON_STATE_DRIVE_TURN = 5;
 	
 	//Controller
-	public static Joystick driveController;
-	public static Joystick shooterController;
-
-	//Time
-	double autoWaitTime;
-	double autoDriveTime;
+	private static Joystick driveController;
+	private static Joystick shooterController;
 	
 	//DriveTrain
 	DriveTrain RobotDrive;
@@ -29,47 +40,211 @@ public class Robot extends IterativeRobot {
 	public void robotInit() {
 		System.out.println("Robot Initializing!");
 		
-		//Controller & SmartDashboard setup
+		//Controller setup
 		driveController = new Joystick(IO.DRIVE_CONTROLLER);
 		shooterController = new Joystick(IO.SHOOTER_CONTROLLER);
 		
-		SmartDashboard.setDefaultNumber("Wait Timer", 0);
-		autoChooser = new SendableChooser();
-		try {
-			autoChooser.addDefault("Autonomous Program 1", new TestAutonomous());
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		
-		//DriveTrain setup
+		//Robot setup
 		defaultSpeed = 0.8f;
 		RobotDrive = new DriveTrain(IO.LEFT_DRIVE_MOTOR, IO.RIGHT_DRIVE_MOTOR, defaultSpeed);
 		RobotIntake = new CubeIntake(IO.LEFT_INTAKE_MOTOR, IO.RIGHT_INTAKE_MOTOR, IO.ARM_MOTOR,
 				IO.LEFT_SHOOTER_MOTOR, IO.RIGHT_SHOOTER_MOTOR);
+		
+		//Smart Dashboard setup
+		SmartDashboard.putNumber("Position", 1);
+		//CameraServer.getInstance().startAutomaticCapture();
 	}
 
-	public void autonomousInit() {
-		System.out.println("Autonomous Robot Initializing!");
-		autoWaitTime = SmartDashboard.getNumber("Wait Timer", 0);
-		autoDriveTime = 2;
-		
-		DriveTrain Robot = new DriveTrain(IO.LEFT_DRIVE_MOTOR, IO.RIGHT_DRIVE_MOTOR, defaultSpeed);
-		RobotIntake = new CubeIntake(IO.LEFT_INTAKE_MOTOR, IO.RIGHT_INTAKE_MOTOR, IO.ARM_MOTOR,
-				IO.LEFT_SHOOTER_MOTOR, IO.RIGHT_SHOOTER_MOTOR);
-	}
+	private void changeAutonState(int nextState) {
+    	if (nextState != autonState) {
+    		autonState = nextState;
+    		autonStateTimer.reset();
+    	}
+    }
+    
+    public void autonomousInit() {
+    	System.out.println("Autonomous Initalized!");
+    	
+    	//Get SmartDashboard & Game Data
+    	robotPosition = (int) SmartDashboard.getNumber("Position", 1);
+    	gameData = DriverStation.getInstance().getGameSpecificMessage();
+    	
+    	// Reset auton state to initial drive forward and reset the timer
+    	autonState = AUTON_STATE_DRIVE_FORWARD;
+    	if (robotPosition == 2) autonState = AUTON_STATE_DRIVE_TURN;
+    	autonStateTimer = new Timer();
+        autonStateTimer.start();
+    }
 
-	public void autonomousPeriodic() {
-		autoChooser.getSelected();
-		/*double timeElapsed = 15 - DriverStation.getInstance().getMatchTime(); // The DriverStation gives an approximate time until the end of the period
-		
-		System.out.println("timeElapsed >= autoWaitTime\n" + timeElapsed + " >= " + autoWaitTime);
-		if (timeElapsed >= autoWaitTime) {
-			System.out.println("timeElapsed >= autoWaitTime + autoDriveTime\n" + timeElapsed + " >= " + autoWaitTime + " + " + autoDriveTime);
-			if (timeElapsed <= autoWaitTime + autoDriveTime) {
-				DriveTrain.drive(1, 1);
-			}
-		}*/
-	}
+    public void autonomousPeriodic() {
+    	//Left & Right starting position
+    	if (robotPosition == 1 || robotPosition == 3) {
+    		if (gameData.length() > 0) {
+    			//Left side
+    			if(gameData.charAt(0) == 'L' && robotPosition == 1 ||
+    					gameData.charAt(0) == 'R' && robotPosition == 3) {
+    				System.out.println("L1 || R3");
+    				switch (autonState) {
+    		    	
+    		    	case AUTON_STATE_DRIVE_FORWARD: {
+    		    		RobotDrive.drive(0.5, 0.5);
+    		    		if (autonStateTimer.hasPeriodPassed(3.3)) {
+    		    			changeAutonState(AUTON_STATE_STOP);
+    		    		}
+    		    		break;
+    		    	}
+    		    	
+    		    	case AUTON_STATE_STOP: {
+    		    		RobotDrive.drive(0, 0);
+    		    		if (autonStateTimer.hasPeriodPassed(0.5)) {
+    		    			changeAutonState(AUTON_STATE_SHOOT);
+    		    		}
+    		    		break;
+    		    	}
+    		    	
+    		    	case AUTON_STATE_SHOOT: {
+    		    		RobotIntake.shooter.speed = 0.35d;
+    		    		RobotIntake.intake(false, true);
+    		    		if (autonStateTimer.hasPeriodPassed(1.5)) {
+    		    			changeAutonState(AUTON_STATE_FINISHED);
+    		    		}
+    		    		break;
+    		    	}
+
+    		    	case AUTON_STATE_FINISHED: {
+    		    		RobotIntake.shooter.speed = 1d;
+    		    		RobotIntake.intake(false, false);
+    		    		break;
+    		    	}
+    		    	}
+    			}
+    			//Right side
+    			else {
+    				System.out.println("R1 || L3");
+    				switch (autonState) {
+    				
+    				case AUTON_STATE_DRIVE_FORWARD: {
+    		    		RobotDrive.drive(0.5, 0.5);
+    		    		if (autonStateTimer.hasPeriodPassed(4d)) {
+    		    			changeAutonState(AUTON_STATE_STOP);
+    		    		}
+    		    		break;
+    		    	}
+    				
+    				case AUTON_STATE_STOP: {
+    		    		RobotDrive.drive(0, 0);
+    		    		if (autonStateTimer.hasPeriodPassed(0.5)) {
+    		    			changeAutonState(AUTON_STATE_SHOOT);
+    		    		}
+    		    		break;
+    		    	}
+    				
+    				case AUTON_STATE_FINISHED: {
+    		    		RobotIntake.shooter.speed = 1d;
+    		    		RobotIntake.intake(false, false);
+    		    		break;
+    		    	}
+    				
+    				}
+    			}
+    		}
+    	}
+    	//Center starting position
+    	if (robotPosition == 2) {
+    		if (gameData.length() > 0) {
+    			//Left side
+    			if(gameData.charAt(0) == 'L') {
+    				System.out.println("L2");
+    				switch (autonState) {
+    				
+    				case AUTON_STATE_DRIVE_TURN: {
+    					RobotDrive.drive(0, 0.5);
+    					if (autonStateTimer.hasPeriodPassed(3d)) {
+    						changeAutonState(AUTON_STATE_DRIVE_FORWARD);
+    					}
+    					break;
+    				}
+    				
+    				case AUTON_STATE_DRIVE_FORWARD: {
+    					RobotDrive.drive(0.5, 0.5);
+    					if (autonStateTimer.hasPeriodPassed(2d)) {
+    						changeAutonState(AUTON_STATE_STOP);
+    					}
+    					break;
+    				}
+    				
+    				case AUTON_STATE_STOP: {
+    		    		RobotDrive.drive(0, 0);
+    		    		if (autonStateTimer.hasPeriodPassed(0.5)) {
+    		    			changeAutonState(AUTON_STATE_SHOOT);
+    		    		}
+    		    		break;
+    		    	}
+    				
+    				case AUTON_STATE_SHOOT: {
+    		    		RobotIntake.shooter.speed = 0.5d;
+    		    		RobotIntake.intake(false, true);
+    		    		if (autonStateTimer.hasPeriodPassed(1.5)) {
+    		    			changeAutonState(AUTON_STATE_FINISHED);
+    		    		}
+    		    		break;
+    		    	}
+    				
+    				case AUTON_STATE_FINISHED: {
+    		    		RobotIntake.shooter.speed = 1d;
+    		    		RobotIntake.intake(false, false);
+    		    		break;
+    		    	}
+    				}
+    			}
+    			//Right side
+    			else {
+    				System.out.println("R2");
+    				switch (autonState) {
+    				
+    				case AUTON_STATE_DRIVE_TURN: {
+    					RobotDrive.drive(0.5, 0);
+    					if (autonStateTimer.hasPeriodPassed(2d)) {
+    						changeAutonState(AUTON_STATE_DRIVE_FORWARD);
+    					}
+    					break;
+    				}
+    				
+    				case AUTON_STATE_DRIVE_FORWARD: {
+    					RobotDrive.drive(0.5, 0.5);
+    					if (autonStateTimer.hasPeriodPassed(3.3d)) {
+    						changeAutonState(AUTON_STATE_STOP);
+    					}
+    					break;
+    				}
+    				
+    				case AUTON_STATE_STOP: {
+    		    		RobotDrive.drive(0, 0);
+    		    		if (autonStateTimer.hasPeriodPassed(0.5)) {
+    		    			changeAutonState(AUTON_STATE_SHOOT);
+    		    		}
+    		    		break;
+    		    	}
+    				
+    				case AUTON_STATE_SHOOT: {
+    		    		RobotIntake.shooter.speed = 0.35d;
+    		    		RobotIntake.intake(false, true);
+    		    		if (autonStateTimer.hasPeriodPassed(1.5)) {
+    		    			changeAutonState(AUTON_STATE_FINISHED);
+    		    		}
+    		    		break;
+    		    	}
+    				
+    				case AUTON_STATE_FINISHED: {
+    		    		RobotIntake.shooter.speed = 1d;
+    		    		RobotIntake.intake(false, false);
+    		    		break;
+    		    	}
+    				}
+    			}
+    		}
+    	}
+    }
 
 	public void teleopPeriodic() {
 		double leftMotorSpeed = DriveTrain.getLeftMotorSpeed(driveController, IO.DRIVE_LEFT_JOYSTICK_Y_AXIS);
