@@ -3,15 +3,26 @@ package org.usfirst.frc.team3597.robot;
 public class IO {
 	
 		//Motors
-		public static int LEFT_MOTOR = 1;
-		public static int RIGHT_MOTOR = 0;
+		public static final int LEFT_DRIVE_MOTOR = 1;
+		public static final int RIGHT_DRIVE_MOTOR = 0;
+		public static final int LEFT_SHOOTER_MOTOR = 2;
+		public static final int RIGHT_SHOOTER_MOTOR = 3;
+		public static final int LEFT_INTAKE_MOTOR = 4;
+		public static final int RIGHT_INTAKE_MOTOR = 5;
+		public static final int ARM_MOTOR = 6;
 		
-		//Controller
-		public static int CONTROLLER = 1;
+		//Controllers
+		public static final int DRIVE_CONTROLLER = 1;
+		public static final int SHOOTER_CONTROLLER = 0;
+		
 		//Buttons
-		public static int BUTTON_A = 2;
-		public static int BUTTON_B = 3;
+		public static int DRIVE_BUTTON_A = 2;
+		public static int SHOOT_BUTTON_A = 1;
+		public static int SHOOT_BUTTON_Y = 4;
+		public static int SHOOT_BUTTON_RB = 5;
+		public static int SHOOT_BUTTON_LB = 6;
+		
 		//Joysticks
-		public static int LEFT_JOYSTICK_Y_AXIS = 3;
-		public static int RIGHT_JOYSTICK_Y_AXIS = 1;
+		public static int DRIVE_LEFT_JOYSTICK_Y_AXIS = 5;
+		public static int DRIVE_RIGHT_JOYSTICK_Y_AXIS = 1;
 }

@@ -1,91 +1,92 @@
-/*----------------------------------------------------------------------------*/
-/* Copyright (c) 2017-2018 FIRST. All Rights Reserved.                        */
-/* Open Source Software - may be modified and shared by FRC teams. The code   */
-/* must be accompanied by the FIRST BSD license file in the root directory of */
-/* the project.                                                               */
-/*----------------------------------------------------------------------------*/
-
 package org.usfirst.frc.team3597.robot;
 
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.Spark;
-import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.CameraServer;
 
 public class Robot extends IterativeRobot {
 	
-	//Drive & Motor
-	private DifferentialDrive Robot;
-	public static float speed = 0.8f;
+	//Autonomous
+	SendableChooser autoChooser;
 	
 	//Controller
-	public static Joystick Controller;
-	public static boolean buttonValueA;
-	public static boolean buttonValueB;
-	
+	public static Joystick driveController;
+	public static Joystick shooterController;
+
 	//Time
 	double autoWaitTime;
 	double autoDriveTime;
 	
+	//DriveTrain
+	DriveTrain RobotDrive;
+	float defaultSpeed;
+	
+	//CubeIntake
+	CubeIntake RobotIntake;
+	
 	public void robotInit() {
 		System.out.println("Robot Initializing!");
-        CameraServer.getInstance().startAutomaticCapture();
-		Robot = new DifferentialDrive(new Spark(IO.LEFT_MOTOR), new Spark(IO.RIGHT_MOTOR));
-		Controller = new Joystick(IO.CONTROLLER);
-		SmartDashboard.setDefaultNumber("Wait Timer", 0);
 		
+		//Controller & SmartDashboard setup
+		driveController = new Joystick(IO.DRIVE_CONTROLLER);
+		shooterController = new Joystick(IO.SHOOTER_CONTROLLER);
+		
+		SmartDashboard.setDefaultNumber("Wait Timer", 0);
+		autoChooser = new SendableChooser();
+		try {
+			autoChooser.addDefault("Autonomous Program 1", new TestAutonomous());
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		//DriveTrain setup
+		defaultSpeed = 0.8f;
+		RobotDrive = new DriveTrain(IO.LEFT_DRIVE_MOTOR, IO.RIGHT_DRIVE_MOTOR, defaultSpeed);
+		RobotIntake = new CubeIntake(IO.LEFT_INTAKE_MOTOR, IO.RIGHT_INTAKE_MOTOR, IO.ARM_MOTOR,
+				IO.LEFT_SHOOTER_MOTOR, IO.RIGHT_SHOOTER_MOTOR);
 	}
 
 	public void autonomousInit() {
 		System.out.println("Autonomous Robot Initializing!");
-		autoWaitTime = SmartDashboard.getNumber("Wait Timer", 0); // Gets how long to wait before moving forwards, drivers must type this in when setting up the match
-		autoDriveTime = 3;  // TODO: See if this drives where you need it to be
+		autoWaitTime = SmartDashboard.getNumber("Wait Timer", 0);
+		autoDriveTime = 2;
+		
+		DriveTrain Robot = new DriveTrain(IO.LEFT_DRIVE_MOTOR, IO.RIGHT_DRIVE_MOTOR, defaultSpeed);
+		RobotIntake = new CubeIntake(IO.LEFT_INTAKE_MOTOR, IO.RIGHT_INTAKE_MOTOR, IO.ARM_MOTOR,
+				IO.LEFT_SHOOTER_MOTOR, IO.RIGHT_SHOOTER_MOTOR);
 	}
 
 	public void autonomousPeriodic() {
-		double timeElapsed = 15 - DriverStation.getInstance().getMatchTime(); // The DriverStation gives an approximate time until the end of the period
+		autoChooser.getSelected();
+		/*double timeElapsed = 15 - DriverStation.getInstance().getMatchTime(); // The DriverStation gives an approximate time until the end of the period
 		
+		System.out.println("timeElapsed >= autoWaitTime\n" + timeElapsed + " >= " + autoWaitTime);
 		if (timeElapsed >= autoWaitTime) {
+			System.out.println("timeElapsed >= autoWaitTime + autoDriveTime\n" + timeElapsed + " >= " + autoWaitTime + " + " + autoDriveTime);
 			if (timeElapsed <= autoWaitTime + autoDriveTime) {
-				Robot.tankDrive(.75, .75); // Left and Right speeds, 20% power
+				DriveTrain.drive(1, 1);
 			}
-		}
+		}*/
 	}
 
 	public void teleopPeriodic() {
-		//Get Button Inputs to Control Speed
-		buttonValueA = Controller.getRawButton(IO.BUTTON_A);
-		buttonValueB = Controller.getRawButton(IO.BUTTON_B);
+		double leftMotorSpeed = DriveTrain.getLeftMotorSpeed(driveController, IO.DRIVE_LEFT_JOYSTICK_Y_AXIS);
+		double rightMotorSpeed = DriveTrain.getRightMotorSpeed(driveController, IO.DRIVE_RIGHT_JOYSTICK_Y_AXIS);
 		
-		//Increase speed on button A & decrease on button B
-		if (buttonValueA) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			speed += 0.1;
-			System.out.println("Speed up");
-			buttonValueA = false;
-		} else if (buttonValueB) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			speed -= 0.1;
-			System.out.println("Speed down");
-			buttonValueB= false;
-		}
+		RobotDrive.changeSpeed(driveController, IO.DRIVE_BUTTON_A, defaultSpeed);
 		
-		//Get Motor Speeds to Control Drive
-		double leftMotorSpeed = (double) (Controller.getRawAxis(IO.LEFT_JOYSTICK_Y_AXIS) * speed);
-		double rightMotorSpeed = (double) (Controller.getRawAxis(IO.RIGHT_JOYSTICK_Y_AXIS) * speed);
+		RobotDrive.drive(leftMotorSpeed, rightMotorSpeed);
 		
-		Robot.tankDrive(leftMotorSpeed, rightMotorSpeed);
+		boolean intakingButton = CubeIntake.getButtonValue(shooterController, IO.SHOOT_BUTTON_A);
+		boolean feedingButton = CubeIntake.getButtonValue(shooterController, IO.SHOOT_BUTTON_Y);
+		boolean armUpButton = CubeIntake.getButtonValue(shooterController, IO.SHOOT_BUTTON_RB);
+		boolean armDownButton = CubeIntake.getButtonValue(shooterController, IO.SHOOT_BUTTON_LB);
+		
+		CubeIntake.intake(intakingButton, feedingButton);
+		
+		RobotIntake.moveArm(armUpButton, armDownButton);
 	}
 	
 }
