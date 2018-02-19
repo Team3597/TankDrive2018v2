@@ -145,7 +145,7 @@ public class Robot extends IterativeRobot {
     				
     				case AUTON_STATE_DRIVE_FORWARD: {
     		    		RobotDrive.drive(0.5, 0.5);
-    		    		if (autonStateTimer.hasPeriodPassed(3.7)) {
+    		    		if (autonStateTimer.hasPeriodPassed(2.85)) {
     		    			changeAutonState(AUTON_STATE_STOP);
     		    		}
     		    		break;
@@ -203,7 +203,7 @@ public class Robot extends IterativeRobot {
     				
     				case AUTON_STATE_DRIVE_FORWARD_BYAHAIR: {
     					RobotDrive.drive(0.5d, 0.5d);
-    					if (autonStateTimer.hasPeriodPassed(1d)) {
+    					if (autonStateTimer.hasPeriodPassed(.8d)) {
     						changeAutonState(AUTON_STATE_STOP);
     					}
     					break;
@@ -256,15 +256,15 @@ public class Robot extends IterativeRobot {
     				
     				case AUTON_STATE_DRIVE_TURNBACK: {
     					RobotDrive.drive(-0.25, 0.6);
-    					if (autonStateTimer.hasPeriodPassed(1.4d)) {
+    					if (autonStateTimer.hasPeriodPassed(1.3d)) {
     						changeAutonState(AUTON_STATE_DRIVE_FORWARD_BYAHAIR);
     					}
     					break;
     				}
     				
     				case AUTON_STATE_DRIVE_FORWARD_BYAHAIR: {
-    					RobotDrive.drive(0.3, 0.3);
-    					if (autonStateTimer.hasPeriodPassed(1d)) {
+    					RobotDrive.drive(0.5, 0.5);
+    					if (autonStateTimer.hasPeriodPassed(.8d)) {
     						changeAutonState(AUTON_STATE_STOP);
     					}
     					break;
