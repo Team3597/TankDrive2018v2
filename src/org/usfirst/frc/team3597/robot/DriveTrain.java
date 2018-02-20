@@ -54,7 +54,7 @@ public class DriveTrain {
 			}
 			buttonValue = false;
 		} else if (shooterButtonValue) {
-			speed = defaultSpeed / 2;
+			speed = defaultSpeed / 1.5f;
 			try {
 				Thread.sleep(500);
 			} catch (InterruptedException e) {
