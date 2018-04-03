@@ -47,7 +47,7 @@ public class Robot extends IterativeRobot {
 		shooterController = new Joystick(IO.SHOOTER_CONTROLLER);
 		
 		//Robot setup
-		defaultSpeed = 0.8f;
+		defaultSpeed = 0.85f;
 		RobotDrive = new DriveTrain(IO.LEFT_DRIVE_MOTOR, IO.RIGHT_DRIVE_MOTOR, defaultSpeed);
 		RobotIntake = new CubeIntake(IO.LEFT_INTAKE_MOTOR, IO.RIGHT_INTAKE_MOTOR, IO.ARM_MOTOR,
 				IO.LEFT_SHOOTER_MOTOR, IO.RIGHT_SHOOTER_MOTOR);
@@ -116,17 +116,16 @@ public class Robot extends IterativeRobot {
     		    	}
     		    	
     		    	case AUTON_STATE_DRIVE_TURN: {
-    		    		System.out.println(turnLeftSpeed + ", " + turnRightSpeed);
     					RobotDrive.drive(turnLeftSpeed, turnRightSpeed);
     					if (autonStateTimer.hasPeriodPassed(0.9f)) {
-    						changeAutonState(AUTON_STATE_STOP);
+    						changeAutonState(AUTON_STATE_SHOOT);
     					}
     					break;
     				}
     		    	
-    		    	//Skipped
     		    	case AUTON_STATE_SHOOT: {
     		    		RobotIntake.shooter.speed = 0.35d;
+    		    		RobotDrive.drive(0.5, 0.5);
     		    		RobotIntake.intake(false, true);
     		    		if (autonStateTimer.hasPeriodPassed(1.5f)) {
     		    			changeAutonState(AUTON_STATE_STOP);
@@ -215,14 +214,14 @@ public class Robot extends IterativeRobot {
     				case AUTON_STATE_DRIVE_FORWARD_BYAHAIR: {
     					RobotDrive.drive(0.5d, 0.5d);
     					if (autonStateTimer.hasPeriodPassed(1.5f)) {
-    						changeAutonState(AUTON_STATE_STOP);
+    						changeAutonState(AUTON_STATE_SHOOT);
     					}
     					break;
     				}
-    				
-    				//Skipped
+
     				case AUTON_STATE_SHOOT: {
     		    		RobotIntake.shooter.speed = 0.35;
+    		    		RobotDrive.drive(0.5, 0.5);
     		    		RobotIntake.intake(false, true);
     		    		if (autonStateTimer.hasPeriodPassed(1.5f)) {
     		    			changeAutonState(AUTON_STATE_STOP);
@@ -277,14 +276,14 @@ public class Robot extends IterativeRobot {
     				case AUTON_STATE_DRIVE_FORWARD_BYAHAIR: {
     					RobotDrive.drive(0.5, 0.5);
     					if (autonStateTimer.hasPeriodPassed(1.5f)) {
-    						changeAutonState(AUTON_STATE_STOP);
+    						changeAutonState(AUTON_STATE_SHOOT);
     					}
     					break;
     				}
-    				
-    				//Skipped
+
     				case AUTON_STATE_SHOOT: {
     		    		RobotIntake.shooter.speed = 0.35;
+    		    		RobotDrive.drive(0.5, 0.5);
     		    		RobotIntake.intake(false, true);
     		    		if (autonStateTimer.hasPeriodPassed(1.5)) {
     		    			changeAutonState(AUTON_STATE_STOP);
