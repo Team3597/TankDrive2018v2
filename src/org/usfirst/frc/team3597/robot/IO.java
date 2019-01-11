@@ -16,7 +16,10 @@ public class IO {
 		public static final int SHOOTER_CONTROLLER = 0;
 		
 		//Buttons
-		public static int DRIVE_BUTTON_A = 2;
+		//EDIT:
+		//Edit these buttons to be buttons B & X on the Shooter controller
+		public static int SHOOT_BUTTON_B = 2;
+		public static int SHOOT_BUTTON_X = 3;
 		public static int SHOOT_BUTTON_A = 1;
 		public static int SHOOT_BUTTON_Y = 4;
 		public static int SHOOT_BUTTON_RB = 5;

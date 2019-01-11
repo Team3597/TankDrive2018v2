@@ -1,5 +1,32 @@
 package org.usfirst.frc.team3597.robot;
 
+//READ ME!
+
+//I've made some changes to the code. Now the X & B buttons can either shoot or be used to change speeds.
+//Currently the program is setup to shoot using the X, Y, and B buttons however by commenting out and in
+//some code located at the bottom of this page as well as some code in the CubeIntake file. DO NOT HAVE
+//BOTH NOT COMMENTED OUT. If you'd like to use the buttons to shoot comment out the code at the bottom of
+//this page. If you'd like to use the buttons to change speeds comment out the code in CubeIntake.
+
+//Using the buttons to shoot (Enabled)
+
+//The X, Y, and B buttons will all act like shoot buttons.
+//X - Highest speed
+//Y - Medium speed
+//B - Lowest speed
+//If you'd like to change the order of the speeds or fine tune them you can change those values in CubeIntake
+//in the Intake method.
+
+//Using the buttons to change speed (Disabled)
+
+//The X and B buttons will change between two speeds
+//X - Highest speed
+//B - Lowest speed
+//Y - Shoots
+
+//With this you can change the speed and then use the Y button to shoot. If you'd like to change the order of the
+//speeds or find tune them you can chage those values in CubeIntake under changeShooterSpeed.
+
 import edu.wpi.first.wpilibj.IterativeRobot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
@@ -47,13 +74,14 @@ public class Robot extends IterativeRobot {
 		shooterController = new Joystick(IO.SHOOTER_CONTROLLER);
 		
 		//Robot setup
-		defaultSpeed = 0.85f;
+		defaultSpeed = 0.50f;
 		RobotDrive = new DriveTrain(IO.LEFT_DRIVE_MOTOR, IO.RIGHT_DRIVE_MOTOR, defaultSpeed);
 		RobotIntake = new CubeIntake(IO.LEFT_INTAKE_MOTOR, IO.RIGHT_INTAKE_MOTOR, IO.ARM_MOTOR,
 				IO.LEFT_SHOOTER_MOTOR, IO.RIGHT_SHOOTER_MOTOR);
 		
 		//Smart Dashboard setup
 		SmartDashboard.putNumber("Position", 1);
+		SmartDashboard.putBoolean("Slow Speed", false);
 		CameraServer.getInstance().startAutomaticCapture();
 	}
 
@@ -90,9 +118,9 @@ public class Robot extends IterativeRobot {
 
     public void autonomousPeriodic() {
     	//Left & Right starting position
-    	if (robotPosition == 1 || robotPosition == 3) {
+    	if (robotPosition == 1 || robotPosition == 3 || robotPosition == 4) {
     		if (gameData.length() > 0) {
-    			//Left side
+    			//On our side
     			if(gameData.charAt(0) == 'L' && robotPosition == 1 ||
     					gameData.charAt(0) == 'R' && robotPosition == 3) {
     				System.out.println("L1 || R3");
@@ -108,6 +136,7 @@ public class Robot extends IterativeRobot {
     				switch (autonState) {
     		    	
     		    	case AUTON_STATE_DRIVE_FORWARD: {
+    		    		RobotIntake.intake(false, false, false, false);
     		    		RobotDrive.drive(0.5, 0.5);
     		    		if (autonStateTimer.hasPeriodPassed(3.6f)) {
     		    			changeAutonState(AUTON_STATE_DRIVE_TURN);
@@ -117,16 +146,15 @@ public class Robot extends IterativeRobot {
     		    	
     		    	case AUTON_STATE_DRIVE_TURN: {
     					RobotDrive.drive(turnLeftSpeed, turnRightSpeed);
-    					if (autonStateTimer.hasPeriodPassed(0.9f)) {
+    					if (autonStateTimer.hasPeriodPassed(1.1f)) {
     						changeAutonState(AUTON_STATE_SHOOT);
     					}
     					break;
     				}
     		    	
     		    	case AUTON_STATE_SHOOT: {
-    		    		RobotIntake.shooter.speed = 0.35d;
     		    		RobotDrive.drive(0.5, 0.5);
-    		    		RobotIntake.intake(false, true);
+    		    		RobotIntake.intake(false, false, false, true);
     		    		if (autonStateTimer.hasPeriodPassed(1.5f)) {
     		    			changeAutonState(AUTON_STATE_STOP);
     		    		}
@@ -142,18 +170,18 @@ public class Robot extends IterativeRobot {
     		    	}
 
     		    	case AUTON_STATE_FINISHED: {
-    		    		RobotIntake.shooter.speed = 1d;
-    		    		RobotIntake.intake(false, false);
+    		    		RobotIntake.intake(false, false, false, false);
     		    		break;
     		    	}
     		    	}
     			}
-    			//Right side
+    			//Not on our side || Override forwards
     			else {
     				System.out.println("R1 || L3");
     				switch (autonState) {
     				
     				case AUTON_STATE_DRIVE_FORWARD: {
+    					RobotIntake.intake(false, false, false, false);
     		    		RobotDrive.drive(0.5, 0.5);
     		    		if (autonStateTimer.hasPeriodPassed(3.4f)) {
     		    			changeAutonState(AUTON_STATE_STOP);
@@ -171,7 +199,7 @@ public class Robot extends IterativeRobot {
     				
     				case AUTON_STATE_FINISHED: {
     		    		RobotIntake.shooter.speed = 1d;
-    		    		RobotIntake.intake(false, false);
+    		    		RobotIntake.intake(false, false, false, false);
     		    		break;
     		    	}
     				
@@ -179,7 +207,7 @@ public class Robot extends IterativeRobot {
     			}
     		}
     	}
-    	//Center starting position
+    	//Center
     	if (robotPosition == 2) {
     		if (gameData.length() > 0) {
     			//Left side
@@ -188,6 +216,7 @@ public class Robot extends IterativeRobot {
     				switch (autonState) {
     				
     				case AUTON_STATE_DRIVE_TURN: {
+    					RobotIntake.intake(false, false, false, false);
     					RobotDrive.drive(0, 0.6);
     					if (autonStateTimer.hasPeriodPassed(1.5f)) {
     						changeAutonState(AUTON_STATE_DRIVE_FORWARD);
@@ -196,8 +225,9 @@ public class Robot extends IterativeRobot {
     				}
     				
     				case AUTON_STATE_DRIVE_FORWARD: {
+    					RobotIntake.intake(false, false, false, false);
     					RobotDrive.drive(0.5, 0.5);
-    					if (autonStateTimer.hasPeriodPassed(0.7f)) {
+    					if (autonStateTimer.hasPeriodPassed(1.6f)) {
     						changeAutonState(AUTON_STATE_DRIVE_TURNBACK);
     					}
     					break;
@@ -220,9 +250,8 @@ public class Robot extends IterativeRobot {
     				}
 
     				case AUTON_STATE_SHOOT: {
-    		    		RobotIntake.shooter.speed = 0.35;
     		    		RobotDrive.drive(0.5, 0.5);
-    		    		RobotIntake.intake(false, true);
+    		    		RobotIntake.intake(false, false, false, true);
     		    		if (autonStateTimer.hasPeriodPassed(1.5f)) {
     		    			changeAutonState(AUTON_STATE_STOP);
     		    		}
@@ -238,8 +267,7 @@ public class Robot extends IterativeRobot {
     		    	}
     				
     				case AUTON_STATE_FINISHED: {
-    		    		RobotIntake.shooter.speed = 1d;
-    		    		RobotIntake.intake(false, false);
+    		    		RobotIntake.intake(false, false, false, false);
     		    		break;
     		    	}
     				}
@@ -250,6 +278,7 @@ public class Robot extends IterativeRobot {
     				switch (autonState) {
     				
     				case AUTON_STATE_DRIVE_TURN: {
+    					RobotIntake.intake(false, false, false, false);
     					RobotDrive.drive(0.6, 0);
     					if (autonStateTimer.hasPeriodPassed(1.5f)) {
     						changeAutonState(AUTON_STATE_DRIVE_FORWARD);
@@ -259,7 +288,7 @@ public class Robot extends IterativeRobot {
     				
     				case AUTON_STATE_DRIVE_FORWARD: {
     					RobotDrive.drive(0.5, 0.5);
-    					if (autonStateTimer.hasPeriodPassed(0.7f)) {
+    					if (autonStateTimer.hasPeriodPassed(1.55f)) {
     						changeAutonState(AUTON_STATE_DRIVE_TURNBACK);
     					}
     					break;
@@ -282,9 +311,8 @@ public class Robot extends IterativeRobot {
     				}
 
     				case AUTON_STATE_SHOOT: {
-    		    		RobotIntake.shooter.speed = 0.35;
     		    		RobotDrive.drive(0.5, 0.5);
-    		    		RobotIntake.intake(false, true);
+    		    		RobotIntake.intake(false, false, false, true);
     		    		if (autonStateTimer.hasPeriodPassed(1.5)) {
     		    			changeAutonState(AUTON_STATE_STOP);
     		    		}
@@ -300,8 +328,7 @@ public class Robot extends IterativeRobot {
     		    	}
     				
     				case AUTON_STATE_FINISHED: {
-    		    		RobotIntake.shooter.speed = 1d;
-    		    		RobotIntake.intake(false, false);
+    		    		RobotIntake.intake(false, false, false, false);
     		    		break;
     		    	}
     				}
@@ -314,16 +341,22 @@ public class Robot extends IterativeRobot {
 		double leftMotorSpeed = DriveTrain.getLeftMotorSpeed(driveController, IO.DRIVE_LEFT_JOYSTICK_Y_AXIS);
 		double rightMotorSpeed = DriveTrain.getRightMotorSpeed(driveController, IO.DRIVE_RIGHT_JOYSTICK_Y_AXIS);
 		
-		RobotDrive.changeSpeed(driveController, IO.DRIVE_BUTTON_A, defaultSpeed);
+		RobotDrive.changeDriveSpeed(driveController, IO.SHOOT_BUTTON_B, defaultSpeed);
+		//Comment Out:
+		//If you want to use the X & B buttons to shoot, not change speeds
+		//RobotIntake.changeShooterSpeed(shooterController, IO.SHOOT_BUTTON_X, IO.SHOOT_BUTTON_B, 1f);
+		//Comment ends here
 		
 		RobotDrive.drive(leftMotorSpeed, rightMotorSpeed);
 		
 		boolean intakingButton = CubeIntake.getButtonValue(shooterController, IO.SHOOT_BUTTON_A);
-		boolean feedingButton = CubeIntake.getButtonValue(shooterController, IO.SHOOT_BUTTON_Y);
+		boolean feedingButtonX = CubeIntake.getButtonValue(shooterController, IO.SHOOT_BUTTON_X);
+		boolean feedingButtonY = CubeIntake.getButtonValue(shooterController, IO.SHOOT_BUTTON_Y);
+		boolean feedingButtonB = CubeIntake.getButtonValue(shooterController, IO.SHOOT_BUTTON_B);
 		boolean armUpButton = CubeIntake.getButtonValue(shooterController, IO.SHOOT_BUTTON_RB);
 		boolean armDownButton = CubeIntake.getButtonValue(shooterController, IO.SHOOT_BUTTON_LB);
 		
-		CubeIntake.intake(intakingButton, feedingButton);
+		CubeIntake.intake(intakingButton, feedingButtonX, feedingButtonY, feedingButtonB);
 		
 		RobotIntake.moveArm(armUpButton, armDownButton);
 	}
