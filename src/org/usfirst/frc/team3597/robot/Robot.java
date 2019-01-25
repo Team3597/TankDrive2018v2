@@ -3,7 +3,7 @@ package org.usfirst.frc.team3597.robot;
 //READ ME!
 
 //I've made some changes to the code. Now the X & B buttons can either shoot or be used to change speeds.
-//Currently the program is setup to shoot using the X, Y, and B buttons however by commenting out and in
+//Currently the program is setup to shoot using the X, Y, and B buttons however this can be changed by commenting out and in
 //some code located at the bottom of this page as well as some code in the CubeIntake file. DO NOT HAVE
 //BOTH NOT COMMENTED OUT. If you'd like to use the buttons to shoot comment out the code at the bottom of
 //this page. If you'd like to use the buttons to change speeds comment out the code in CubeIntake.
@@ -74,7 +74,7 @@ public class Robot extends IterativeRobot {
 		shooterController = new Joystick(IO.SHOOTER_CONTROLLER);
 		
 		//Robot setup
-		defaultSpeed = 0.50f;
+		defaultSpeed = 0.8f; //DEFAULT DRIVE SPEED. PRETTY IMPORTANT THING PEOPLE LIKE TO CHANGE ALL TOO MUCH! :)
 		RobotDrive = new DriveTrain(IO.LEFT_DRIVE_MOTOR, IO.RIGHT_DRIVE_MOTOR, defaultSpeed);
 		RobotIntake = new CubeIntake(IO.LEFT_INTAKE_MOTOR, IO.RIGHT_INTAKE_MOTOR, IO.ARM_MOTOR,
 				IO.LEFT_SHOOTER_MOTOR, IO.RIGHT_SHOOTER_MOTOR);
@@ -84,7 +84,7 @@ public class Robot extends IterativeRobot {
 		SmartDashboard.putBoolean("Slow Speed", false);
 		CameraServer.getInstance().startAutomaticCapture();
 	}
-
+	
 	private void changeAutonState(int nextState) {
     	if (nextState != autonState) {
     		autonState = nextState;
